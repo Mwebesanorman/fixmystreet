@@ -918,26 +918,7 @@ $.extend(fixmystreet.set_up, {
                 var txt = item.textContent;
                 haystack.push(txt);
             });
-
-            // I found the below opts by trying out search on
-            // https://leeoniya.github.io/uFuzzy/demos/compare.html?libs=uFuzzy&outOfOrder.
-            //
-            // More info at
-            // https://github.com/leeoniya/uFuzzy?tab=readme-ov-file.
-            var uf = new uFuzzy(
-                {
-                    interIns: Infinity,
-                    interLft: 0,
-                    interRgt: 0,
-                    intraChars: "[\\w-]",
-                    intraDel: 1,
-                    intraIns: 1,
-                    intraMode: 1, // SingleError
-                    intraSub: 1,
-                    intraTrn: 1
-                }
-            );
-
+            var uf = new uFuzzy();
             var results = uf.search(haystack, this.value, 1);
             var subcats_to_show = {};
             for (i = 0; i<items.length; i++) {
