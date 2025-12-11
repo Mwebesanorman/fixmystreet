@@ -56,7 +56,11 @@ sub call_api {
 
     my $outdir = FixMyStreet->config('WASTEWORKS_BACKEND_TMP_DIR');
     mkdir($outdir) unless -d $outdir;
-    my $tmp = $outdir . "/" . md5_hex("$key $calls");
+    my $tmp_file_name = md5_hex("$key $calls");
+    if (-e $outdir . "/" . $tmp_file_name && _uncleared_dir($outdir . "/" . $tmp_file_name)) {
+        unlink($outdir . "/" . $tmp_file_name);
+    }
+    my $tmp = $outdir . "/" . $tmp_file_name;
 
     my @cmd = (
         FixMyStreet->path_to('bin/fixmystreet.com/call-wasteworks-backend'),
@@ -156,6 +160,23 @@ sub _parallel_api_calls {
     $pm->wait_all_children;
 
     return \%calls;
+}
+
+=head2 _uncleared_dir
+
+Return a positive if a directory is over a minute old
+
+=cut
+
+sub _uncleared_dir {
+    my $file = shift;
+
+    my $time = time;
+    my @stat stat($file);
+
+    if (($time - $stat[9]) > 60) {
+        return 1;
+    }
 }
 
 1;
