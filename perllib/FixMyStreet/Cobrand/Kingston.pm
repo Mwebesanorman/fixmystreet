@@ -641,7 +641,7 @@ sub waste_munge_enquiry_form_pages {
     $pages->[1]{intro} = 'enquiry-intro.html';
     $pages->[1]{title} = _enquiry_nice_title($category);
 
-    return unless $category eq 'bin not returned';;
+    return unless $category eq 'Bin not returned';;
 
     my $assisted = $c->stash->{assisted_collection};
     if ($assisted) {
@@ -654,8 +654,8 @@ sub waste_munge_enquiry_form_pages {
             next => 'enquiry',
         };
         push @$fields, now_returned => {
-            type => 'select',
-            widget => 'radiogroup',
+            type => 'Select',
+            widget => 'RadioGroup',
             required => 1,
             label => 'has the container now been returned to the property?',
             options => [
@@ -667,34 +667,34 @@ sub waste_munge_enquiry_form_pages {
         # remove any non-assisted extra notices
         my @new;
         for (my $i=0; $i<@$fields; $i+=2) {
-            if ($fields->[$i] !~ /^extra_notassisted/) {
+            if ($fields->[$i] !~ /^extra_notassisted/i) {
                 push @new, $fields->[$i], $fields->[$i+1];
             }
         }
         @$fields = @new;
-        $pages->[3]{fields} = [ grep { !/^extra_notassisted/ } @{$pages->[3]{fields}} ];
+        $pages->[3]{fields} = [ grep { !/^extra_notassisted/i } @{$pages->[3]{fields}} ];
         $pages->[3]{update_field_list} = sub {
             my $form = shift;
             my $c = $form->c;
             my $data = $form->saved_data;
             my $returned = $data->{now_returned} || '';
-            my $key = $returned eq 'no' ? 'extra_assistedreturned' : 'extra_assistednotreturned';
+            my $key = $returned eq 'no' ? 'extra_AssistedReturned' : 'extra_AssistedNotReturned';
             return {
                 category => { default => $c->get_param('category') },
                 service_id => { default => $c->get_param('service_id') },
-                $key => { widget => 'hidden' },
+                $key => { widget => 'Hidden' },
             }
         };
     } else {
         # remove any assisted extra notices
         my @new;
         for (my $i=0; $i<@$fields; $i+=2) {
-            if ($fields->[$i] !~ /^extra_assisted/) {
+            if ($fields->[$i] !~ /^extra_assisted/i) {
                 push @new, $fields->[$i], $fields->[$i+1];
             }
         }
         @$fields = @new;
-        $pages->[1]{fields} = [ grep { !/^extra_assisted/ } @{$pages->[1]{fields}} ];
+        $pages->[1]{fields} = [ grep { !/^extra_assisted/i } @{$pages->[1]{fields}} ];
     }
 }
 
