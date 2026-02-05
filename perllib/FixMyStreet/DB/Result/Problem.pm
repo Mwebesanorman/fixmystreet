@@ -920,7 +920,7 @@ sub response_templates {
 }
 
 sub response_template_for {
-    my ($self, $state, $old_state, $ext_code, $old_ext_code) = @_;
+    my ($self, $body, $state, $old_state, $ext_code, $old_ext_code) = @_;
 
     # Response templates are only triggered if the state/external status has changed.
     # And treat any fixed state as fixed.
@@ -943,6 +943,7 @@ sub response_template_for {
         };
 
         $template = $self->response_templates->search({
+            'me.body_id' => $body->id,
             auto_response => 1,
             -or => $state_params,
         }, $order )->first;
@@ -1522,7 +1523,7 @@ sub create_related_things {
             blank_updates_permitted => 1,
         );
 
-        my $template = $self->response_template_for('confirmed', 'dummy', '', '');
+        my $template = $self->response_template_for($body, 'confirmed', 'dummy', '', '');
         my ($description, $email_text) = $updates->comment_text_for_request($template, {}, $self);
         next unless $description;
 
@@ -1554,14 +1555,25 @@ sub waste_property_id {
     return $self->get_extra_field_value('property_id');
 }
 
-=head3 waste_check_payment
+=head3 waste_has_payment
+
+Check if the report has an associated payment.
+
+=cut
+
+sub waste_has_payment {
+    return $_[0]->get_extra_field_value('payment');
+}
+
+
+=head3 waste_check_payment_state
 
 This is called to see if a report has already had payment made on it.
 
 =cut
 
 sub waste_check_payment_state {
-    my ($self, $reference) = @_;
+    my $self = shift;
     my $cobrand = $self->get_cobrand_logged;
 
     my $already_confirmed;

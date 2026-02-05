@@ -108,7 +108,7 @@ sub state_groups_inspect {
         [ 'Scheduled', [ 'action scheduled' ] ],
         [ 'Pending', [ 'in progress' ] ],
         [ 'Fixed', [ 'fixed - council' ] ],
-        [ 'Closed', [ 'not responsible', 'duplicate', 'unable to fix' ] ],
+        [ 'Closed', [ 'not responsible', 'duplicate', 'unable to fix', 'internal referral' ] ],
     ]
 }
 
@@ -603,5 +603,28 @@ sub get_ward_type {
         return 'division'
     }
 }
+
+sub updates_disallowed_override {
+    my ($self, $problem, $result) = @_;
+
+    # Allow staff and reporter updates on specific categories.
+    if (($problem->category eq 'Other' ||
+        $problem->category eq 'Other lighting issue' ||
+        $problem->category eq 'Unauthorised objects on street lighting assets' ||
+        $problem->category eq 'Unauthorised objects on other highway infrastructure')
+        && $result) {
+        my $c = $self->{c};
+        return !($c->user_exists && ($c->user->from_body || $problem->user_id == $c->user->id));
+    }
+
+    return $result;
+
+}
+
+around updates_disallowed => sub {
+    my ($orig, $self, $problem) = @_;
+    my $result = $self->$orig($problem);
+    return $self->updates_disallowed_override($problem, $result);
+};
 
 1;

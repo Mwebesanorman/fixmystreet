@@ -180,7 +180,7 @@ sub waste_containers {
         $CONTAINERS{paper_360} => 'Blue lid paper and cardboard bin (360L)',
         $CONTAINERS{paper_180} => 'Blue lid paper and cardboard bin (180L)',
 
-        $CONTAINERS{paper_bag} => 'Paper & Card Reusable Bag',
+        $CONTAINERS{paper_bag} => 'Paper & Card Bag',
 
         $CONTAINERS{food_indoor} => 'Food waste bin (kitchen)',
         $CONTAINERS{food_outdoor} => 'Food waste bin (outdoor)',
@@ -212,22 +212,22 @@ sub image_for_unit {
     my $container = $unit->{request_containers}[0] || 0;
 
     my $images = {
-        $CONTAINERS{refuse_black_bag} => svg_container_sack('normal', '#3B3B3A'),
-        $CONTAINERS{recycling_purple_bag} => svg_container_sack('normal', '#BD63D1'),
-        $CONTAINERS{recycling_blue_stripe_bag} => svg_container_sack('stripe', '#3E50FA'),
-        $CONTAINERS{refuse_red_stripe_bag} => svg_container_sack('stripe', '#F1506D'),
-        $CONTAINERS{paper_bag} => svg_container_sack('normal', '#D8D8D8'),
-        $CONTAINERS{garden_sack} => svg_container_sack('normal', '#A2845D'),
+        $CONTAINERS{refuse_black_bag} => svg_container_sack('Black sack', 'normal', '#3B3B3A'),
+        $CONTAINERS{recycling_purple_bag} => svg_container_sack('Purple bag', 'normal', '#BD63D1'),
+        $CONTAINERS{recycling_blue_stripe_bag} => svg_container_sack('Blue striped bag', 'stripe', '#3E50FA'),
+        $CONTAINERS{refuse_red_stripe_bag} => svg_container_sack('Red striped bag', 'stripe', '#F1506D'),
+        $CONTAINERS{paper_bag} => svg_container_sack('Clear bag', 'normal', '#D8D8D8'),
+        $CONTAINERS{garden_sack} => svg_container_sack('Brown sack', 'normal', '#A2845D'),
 
         # Fallback to the service if no container match
-        $SERVICE_IDS{domestic_refuse} => svg_container_bin('wheelie', '#333333'),
-        $SERVICE_IDS{domestic_food} => { src => "$base/caddy-brown-large", alt => 'Large brown box' },
-        $SERVICE_IDS{domestic_paper} => svg_container_bin("wheelie", '#767472', '#00A6D2', 1),
+        $SERVICE_IDS{domestic_refuse} => svg_container_bin('Black wheelie bin', 'wheelie', '#333333'),
+        $SERVICE_IDS{domestic_food} => { src => "$base/caddy-brown-large", alt => 'Large brown caddy' },
+        $SERVICE_IDS{domestic_paper} => svg_container_bin('Blue lidded wheelie bin', "wheelie", '#767472', '#00A6D2', 1),
         $SERVICE_IDS{domestic_mixed} => { src => "$base/box-green-mix", alt => 'Green box' },
-        $SERVICE_IDS{communal_refuse} => svg_container_bin('communal', '#767472', '#333333'),
-        $SERVICE_IDS{garden} => svg_container_bin('wheelie', '#8B5E3D'),
-        $SERVICE_IDS{communal_food} => svg_container_bin('wheelie', '#8B5E3D'),
-        $SERVICE_IDS{communal_mixed} => svg_container_bin('communal', '#41B28A'),
+        $SERVICE_IDS{communal_refuse} => svg_container_bin('Grey communal bin', 'communal', '#767472', '#333333'),
+        $SERVICE_IDS{garden} => svg_container_bin('Brown wheelie bin', 'wheelie', '#8B5E3D'),
+        $SERVICE_IDS{communal_food} => svg_container_bin('Brown wheelie bin', 'wheelie', '#8B5E3D'),
+        $SERVICE_IDS{communal_mixed} => svg_container_bin('Green communal bin', 'communal', '#41B28A'),
         bulky => "$base/bulky-black",
     };
     return $images->{$container} || $images->{$service_id};
@@ -504,6 +504,8 @@ sub waste_munge_request_data {
         }
         $c->set_param('payment', $cost || undef); # Want to undefine it if free
     }
+
+    $c->stash->{confirmation_text} = $self->container_request_note($service_id);
 }
 
 sub garden_due_date {
@@ -634,6 +636,34 @@ sub _bulky_collection_overdue {
     $collection_due_date->truncate(to => 'day')->set_hour(18);
     my $today = DateTime->now->set_time_zone(FixMyStreet->local_time_zone);
     return $today > $collection_due_date;
+}
+
+=head2 container_request_note
+
+Include special note for domestic_mixed container requests.
+
+=cut
+
+sub container_request_note {
+    my ($self, $service_id) = @_;
+    if ($service_id && $service_id eq $SERVICE_IDS{domestic_mixed}) {
+        return 'Currently out of stock. ' .
+        'Orders will be delievered once stock is available, but we do not know when this will be.';
+    }
+}
+
+=head2 bin_request_form_extra_fields
+
+Include special note for domestic_mixed container requests.
+
+=cut
+
+sub bin_request_form_extra_fields {
+    my ($self, $service, $id, $field_list) = @_;
+    my $note = $self->container_request_note($service->{service_id});
+    return unless $note;
+    my %fields = @$field_list;
+    $fields{"container-$id"}{option_hint} = $note;
 }
 
 1;

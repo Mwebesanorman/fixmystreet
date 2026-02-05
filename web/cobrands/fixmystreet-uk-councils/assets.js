@@ -657,16 +657,14 @@ var centralbeds_types = [
 
 function cb_should_not_require_road() {
     // Ensure the user can select anywhere on the map if they want to
-    // make a report in the "Trees", "Fly Tipping" or "Public Rights of way" categories.
+    // make a report in the "Trees" group, or the "Fly Tipping" or "Public Rights of way" categories.
     // This means we don't show the "not found" message if no category/group has yet been selected
-    // or if one of the groups containing either the "Trees", "Fly Tipping" or "Public Rights of way"
+    // or if one of the groups containing either the "Fly Tipping" or "Public Rights of way"
     // categories has been selected.
     var selected = fixmystreet.reporting.selectedCategory();
-    return selected.category === "Trees" ||
-            (selected.group === "Grass, Trees, Verges and Weeds" && !selected.category) ||
+    return selected.group === "Trees" ||
             selected.category === "Fly Tipping" ||
-            (selected.group === "Flytipping, Bins and Graffiti" && !selected.category) ||
-            selected.category === 'Housing Fly-tipping' ||
+            (selected.group === "Flytipping and Bins" && !selected.category) ||
             selected.category === 'Public Rights of way' ||
             (!selected.group && !selected.category);
 }
@@ -932,6 +930,21 @@ fixmystreet.assets.gloucestershire.traffic_asset_details = function() {
     return "Install No: " + a.install_no + "\n" +
         "Equipment type: " + a.equip_type + "\n" +
         "LED/Halogen: " + a.led_halogen;
+};
+
+// attendedDate is a Unix timestamp in milliseconds;
+// -2209161600000 is 1899-12-30, used to mean "no date"
+fixmystreet.assets.gloucestershire.drains_construct_selected_asset_message = function(asset) {
+    var date = asset.attributes.attendedDate;
+    var message = '<p>All GCC gullies are maintained on a cyclical program. ' +
+        'For more information, please visit the ' +
+        '<a href="https://www.gloucestershire.gov.uk/roads/road-maintenance/gully-emptying-schedules/">' +
+        'Highways Road Maintenance/ Gully page</a>.</p>';
+    if (!date || date === -2209161600000) {
+        return message;
+    }
+    return message + '<p>This drain was last cleansed on ' +
+        new Date(date).toLocaleDateString('en-GB') + '</p>';
 };
 
 /* Hackney */

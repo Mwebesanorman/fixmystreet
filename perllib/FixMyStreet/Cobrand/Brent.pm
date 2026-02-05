@@ -1101,9 +1101,6 @@ sub waste_extra_service_info {
 
         $_->{timeband} = _timeband_for_schedule($schedules->{next});
 
-        # Brent has two overlapping schedules for food
-        $schedules->{description} =~ s/other\s*// if $_->{ServiceId} == $SERVICE_IDS{domestic_food} || $_->{ServiceId} == $SERVICE_IDS{communal_refuse};
-
         # Check calendar allocation
         if (($_->{ServiceId} == $SERVICE_IDS{domestic_refuse} || $_->{ServiceId} == $SERVICE_IDS{garden} || $_->{ServiceId} == $SERVICE_IDS{domestic_paper}) && ($schedules->{description} =~ /every other/i || $schedules->{description} =~ /every \d+ week/i) && $schedules->{next}{schedule}) {
             my $allocation = $schedules->{next}{schedule}{Allocation};
@@ -1157,15 +1154,15 @@ sub image_for_unit {
 
     my $base = '/i/waste-containers';
     my $images = {
-        $SERVICE_IDS{domestic_refuse} => svg_container_bin("wheelie", '#767472'),
-        $SERVICE_IDS{domestic_mixed} => svg_container_bin("wheelie", '#767472', '#00A6D2', 1),
+        $SERVICE_IDS{domestic_refuse} => svg_container_bin('Grey bin', "wheelie", '#767472'),
+        $SERVICE_IDS{domestic_mixed} => svg_container_bin('Blue lidded bin', "wheelie", '#767472', '#00A6D2', 1),
         $SERVICE_IDS{domestic_food} => "$base/caddy-green-recycling",
-        $SERVICE_IDS{garden} => svg_container_bin("wheelie", '#41B28A'),
-        $SERVICE_IDS{communal_refuse} => svg_container_bin("communal", '#333333'),
-        $SERVICE_IDS{communal_mixed} => svg_container_bin("communal", '#00A6D2', undef, 1),
-        $SERVICE_IDS{communal_food} => svg_container_bin("wheelie", '#8B5E3D'),
-        $SERVICE_IDS{fas_refuse} => svg_container_sack("normal", '#333333'),
-        $SERVICE_IDS{fas_mixed} => svg_container_sack("normal", '#d8d8d8'),
+        $SERVICE_IDS{garden} => svg_container_bin('Green bin', "wheelie", '#41B28A'),
+        $SERVICE_IDS{communal_refuse} => svg_container_bin('Black communal bin', "communal", '#333333'),
+        $SERVICE_IDS{communal_mixed} => svg_container_bin('Blue communal bin', "communal", '#00A6D2', undef, 1),
+        $SERVICE_IDS{communal_food} => svg_container_bin('Brown bin', "wheelie", '#8B5E3D'),
+        $SERVICE_IDS{fas_refuse} => svg_container_sack('Black sack', "normal", '#333333'),
+        $SERVICE_IDS{fas_mixed} => svg_container_sack('Clear sack', "normal", '#d8d8d8'),
         $SERVICE_IDS{domestic_paper} => "$base/bag-blue",
         small_items => "$base/electricals-batteries-textiles",
     };
@@ -1228,6 +1225,9 @@ sub waste_munge_request_form_fields {
         next unless $key =~ /^container-(\d+)/;
         my $id = $1;
         my ($cost, $hint) = $self->request_cost($id);
+        if (!$hint) {
+            $hint = $id == $CONTAINER_IDS{rubbish_grey_bin} ? 'Chargeable - Subject to approval' : '';
+        }
         push @radio_options, {
             value => $id,
             label => $self->{c}->stash->{containers}->{$id},
@@ -1291,10 +1291,11 @@ sub waste_munge_request_data {
 
     my $c = $self->{c};
 
-    for (qw(how_long_lived contamination_reports ordered_previously)) {
+    for (qw(how_long_lived contamination_reports ordered_previously property_people property_children)) {
         $c->set_param("request_$_", $data->{$_} || '');
     }
-    if (request_referral($id, $data)) {
+    my $referral = request_referral($id, $data);
+    if ($referral) {
         $c->set_param('request_referral', 1);
     }
 
@@ -1331,6 +1332,13 @@ sub waste_munge_request_data {
     $data->{detail} = "Quantity: 1\n\n$address";
     $data->{detail} .= "\n\nReason: $nice_reason" if $nice_reason;
 
+    if ($id == $CONTAINER_IDS{rubbish_grey_bin} && $reason eq 'extra') {
+        if ($referral) {
+            $data->{detail} = "Request forwarded to Brent Council by email\n\n$data->{detail}";
+        } else {
+            $data->{detail} = "Request automatically calculated\n\n$data->{detail}";
+        }
+    }
     my $notes;
     $c->set_param('Container_Request_Notes', $notes) if $notes;
 
@@ -1357,6 +1365,20 @@ sub request_referral {
     # return 1 if ($data->{contamination_reports} || 0) >= 3; # Will be present on missing only
     return 1 if ($data->{how_long_lived} || '') eq '3more'; # Will be present on new build only
     return 1 if $data->{ordered_previously};
+
+    if (
+        ( ($data->{'container-choice'} && $data->{'container-choice'} == $CONTAINER_IDS{rubbish_grey_bin})
+          || $data->{'container-' . $CONTAINER_IDS{rubbish_grey_bin}}
+        )
+    ) {
+        if ($data->{request_reason} eq 'extra') {
+            if ($data->{property_people} == 6 || $data->{property_children} eq 'Yes') {
+                return 1;
+            }
+        } else {
+          return 1;
+        }
+    }
 }
 
 sub waste_request_form_first_title { 'Which container do you need?' }
@@ -1366,7 +1388,26 @@ sub waste_request_form_first_next {
     return sub {
         my $data = shift;
         my $choice = $data->{"container-choice"};
-        return 'request_refuse_call_us' if $choice == $CONTAINER_IDS{rubbish_grey_bin};
+        if ($choice == $CONTAINER_IDS{rubbish_grey_bin}) {
+            my $date = DateTime->now()->subtract( weeks => 2 );
+            my $parser = DateTime::Format::Strptime->new( pattern => '%Y-%m-%d');
+            my $c = $self->{c};
+            $data->{refuse_outcome} = $c->cobrand->problems->search(
+                {
+                    category => 'Request new container',
+                    title => ['Request new General rubbish bin (grey bin)'],
+                    confirmed => { '>=', $parser->format_datetime($date) },
+                    uprn => $c->stash->{property}{uprn},
+                }
+            )->first;
+        };
+        if ($data->{refuse_outcome}) {
+            if ($data->{refuse_outcome}->get_extra_field_value('request_referral')) {
+                $data->{refuse_outcome} = 'referral';
+            } else {
+                $data->{refuse_outcome} = 'capacity';
+            }
+        };
         return 'replacement';
     };
 }
@@ -1492,6 +1533,23 @@ sub waste_garden_mod_params {
         $c->set_param('Container_Quantity', $data->{new_bins});
     }
 }
+
+
+sub waste_post_report_creation {
+    my ($self, $report, $data) = @_;
+
+    if (
+        $report->title =~ /Request new General rubbish bin \(grey bin\)/
+        && $data->{request_reason} eq 'extra'
+        ) {
+
+        if (!$report->get_extra_field_value('request_referral')) {
+            $self->{c}->stash->{brent_request_automatic} = 1;
+            $report->state('fixed - council');
+        }
+        $report->update;
+    }
+};
 
 =item * Uses custom text for the title field for new reports.
 
